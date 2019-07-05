@@ -9,10 +9,10 @@ Simplify retrieving data from any url
 ```python
 
 from url_downloader import save_file
-save_file(url=https://example.url/image.jpg, file_path=C:\\path, file_name=name.jpg)
+save_file(url='https://example.url/image.jpg', file_path='C:\\path', file_name='name.jpg')
 
 
 ```python
 
 from url_downloader import get_resource
-data = get_resource(url=https://example.url/)
+data = get_resource(url='https://example.url/')
