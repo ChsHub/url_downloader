@@ -6,14 +6,14 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
-    name='url_resource',
+    name='url_downloader',
     version=__version__,
     description='Download url',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='ChsHub',
     author_email='christian1193@web.com',
-    packages=['url_resource'],
+    packages=['url_downloader'],
     license='MIT License',
     classifiers=['Programming Language :: Python :: 3.7']
 )

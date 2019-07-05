@@ -109,4 +109,7 @@ def get_resource(url: str, timeout: int = 4, wait: int = 2) -> str:
     :param wait: Wait time before download starts (in seconds)
     :return: Resource as a string
     """
-    return _get_url_data(url, get, timeout=timeout, wait=wait).text
+    data = _get_url_data(url, get, timeout=timeout, wait=wait)
+    if data:
+        return data.text
+    return data
