@@ -8,11 +8,12 @@ with open("README.md", "r") as f:
 setup(
     name='url_downloader',
     version=__version__,
-    description='Download url',
+    description=long_description.split('\n')[1],
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='ChsHub',
     author_email='christian1193@web.com',
+    url="https://github.com/ChsHub/url_downloader",
     packages=['url_downloader'],
     license='MIT License',
     classifiers=['Programming Language :: Python :: 3.7']
