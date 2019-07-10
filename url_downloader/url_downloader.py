@@ -95,8 +95,8 @@ def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, w
     :param wait: Wait time before download starts (in seconds)
     :return: True, if download successful or file already exists, False otherwise
     """
-    while not file_name:
-        file_name = file_name.split("/")[-1]  # Get last
+    if not file_name:
+        file_name = url.strip('/').split('/')[-1]  # Get last
 
     return _get_url_data(url, SaveToDisk(file_path, file_name).get, timeout=timeout, wait=wait)
 
