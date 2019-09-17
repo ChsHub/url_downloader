@@ -40,7 +40,8 @@ class SaveToDisk:
         headers['Range'] = 'bytes=%d-' % resume_byte_pos
         response = get(url, headers=headers, stream=True, timeout=timeout)
 
-        if response.status_code != 206:
+        if response.status_code != 206 and response.status_code != 200:
+            info(response.status_code)
             raise ValueError('Wrong response')
 
         # Save to temporary file
@@ -71,10 +72,9 @@ def _get_url_data(url: str, get_function, tries: int = 1000, timeout: int = 4, w
     # Try download until it succeeds
     for i in range(wait, tries):  # Wait time to prevent accidental DOS attack
         try:
-
             sleep(i)
-            return get_function(url, headers={'User-agent': 'Chrome'}, timeout=timeout)  # , verify=False
-
+            result = get_function(url, headers={'User-agent': 'Chrome'}, timeout=timeout)  # , verify=False
+            return result
         except Exception as e:
             if 'Read timed out' in str(e):
                 info('Read timeout (try %s)' % i)
