@@ -85,7 +85,7 @@ def _get_url_data(url: str, get_function, tries: int = 1000, timeout: int = 4, w
     return None
 
 
-def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, wait: int = 2) -> bool:
+def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, wait: int = 2, tries: int = 10) -> bool:
     """
     Download file and save to memory
     :param url: Url of the file
@@ -93,12 +93,16 @@ def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, w
     :param file_name: File name
     :param timeout: Response timeout in seconds
     :param wait: Wait time before download starts (in seconds)
+    :param tries: Number of download tries
     :return: True, if download successful or file already exists, False otherwise
     """
     if not file_name:
         file_name = url.strip('/').split('/')[-1]  # Get last
+    if exists(join(file_path, file_name)):
+        info('File exists %s' % file_name)
+        return True
 
-    return _get_url_data(url, SaveToDisk(file_path, file_name).get, timeout=timeout, wait=wait)
+    return _get_url_data(url, SaveToDisk(file_path, file_name).get, timeout=timeout, wait=wait, tries=tries)
 
 
 def get_resource(url: str, timeout: int = 4, wait: int = 2) -> str:
