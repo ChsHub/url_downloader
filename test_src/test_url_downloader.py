@@ -1,6 +1,5 @@
 from hypothesis import given, settings
-from hypothesis._strategies import integers
-from hypothesis.strategies import text
+from hypothesis.strategies import text, integers
 
 from url_downloader.url_downloader import _get_url_data, save_file, get_resource
 

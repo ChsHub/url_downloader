@@ -16,7 +16,7 @@ setup(
     packages=['url_downloader'],
     license='MIT License',
     classifiers=['Programming Language :: Python :: 3.7'],
-    requires=['requests']
+    install_requires=['requests']
 )
 # python -m pip install . --upgrade
 # python setup.py sdist bdist_wheel
