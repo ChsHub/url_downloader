@@ -15,8 +15,9 @@ setup(
     url="https://github.com/ChsHub/url_downloader",
     packages=['url_downloader'],
     license='MIT License',
-    classifiers=['Programming Language :: Python :: 3.7']
+    classifiers=['Programming Language :: Python :: 3.7'],
+    requires=['requests']
 )
-# C:\Python37\python.exe -m pip install . --upgrade
-# C:\Python37\python.exe setup.py sdist bdist_wheel
-# C:\Python37\python.exe -m twine upload dist/*
+# python -m pip install . --upgrade
+# python setup.py sdist bdist_wheel
+# python -m twine upload dist/*

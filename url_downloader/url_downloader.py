@@ -87,7 +87,7 @@ def _get_url_data(url: str, get_function, tries: int = 1000, timeout: int = 4, w
 
 def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, wait: int = 2, tries: int = 10) -> bool:
     """
-    Download file and save to memory
+    Download file and save to disk.
     :param url: Url of the file
     :param file_path: File path
     :param file_name: File name

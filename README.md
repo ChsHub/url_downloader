@@ -1,5 +1,6 @@
 # url_downloader
 Simplify retrieving or downloading data from any url.
+File downloads can be interrupted and continued later.
 
 ## Installation
 `python3 -m pip install url-downloader`
