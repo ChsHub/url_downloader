@@ -1,19 +1,26 @@
-# python 3
+"""
+Simple download of url data
+"""
 from logging import info, exception, error
 from shutil import move
 from tempfile import gettempdir
 from time import sleep
-
-from os.path import join, getsize, exists
+from hashlib import sha224
 from requests import get
+from pathlib import Path
 
 
 class SaveToDisk:
-    def __init__(self, file_path, file_name):
-        self._file = file_name
-        self._path = file_path
+    """
+    Override response.get to save file to target path
+    """
 
-    def get(self, url, headers, timeout):
+    def __init__(self, file_path: Path, url: str):
+        # Prevent name collisions by using hash
+        self._temp_path = Path(gettempdir(), sha224(bytes(url, encoding='UTF-8')).hexdigest() + file_path.suffix)
+        self._file_path = file_path
+
+    def get(self, url: str, headers: dict, timeout: int):
         """
         Function replaces response.get so the url content is also saved as a file.
         Cancelling and resuming download is supported.
@@ -23,42 +30,35 @@ class SaveToDisk:
         :return: True, if download was successful, or file already exists.
         """
         # '''http://masnun.com/2016/09/18/python-using-the-requests-module-to-download-large-files-efficiently.html'''
-
-        # Get full file path
-        temp_path = join(gettempdir(), self._file)
-        file_path = join(self._path, self._file)
-        if exists(file_path):
-            return True
-
         # Get html stream
-        if exists(temp_path):
-            resume_byte_pos = getsize(temp_path)
-        else:
-            resume_byte_pos = 0
+        resume_byte_pos = self._temp_path.stat().st_size if self._temp_path.exists() else 0
 
         # Add range header for resuming the download
         headers['Range'] = 'bytes=%d-' % resume_byte_pos
         response = get(url, headers=headers, stream=True, timeout=timeout)
 
-        if response.status_code != 206 and response.status_code != 200:
-            info(response.status_code)
-            raise ValueError('Wrong response')
+        if response.status_code not in (200, 206):
+            info('Wrong http response %s' % response.status_code)
+            raise ValueError('Wrong response %s' % response.status_code)
 
         # Save to temporary file
         for chunk in response.iter_content(chunk_size=256):
             if chunk:  # filter out keep-alive new chunks
-                with open(temp_path, "ab") as f:
+                with open(self._temp_path, "ab") as f:
                     f.write(chunk)
 
+        if self._file_path.exists():
+            info('File already exists')
+            return True
         # If download complete, make file permanent
-        move(temp_path, self._path)
-        info("DOWNLOADED: " + url + " TO " + file_path)
+        move(self._temp_path, self._file_path)
+        info("DOWNLOADED: %s TO %s" % (url, self._file_path))
         return True
 
 
-def _get_url_data(url: str, get_function, tries: int = 1000, timeout: int = 4, wait: int = 2):
+def _get_url_data(url: str, get_function, tries: int, timeout: int, wait: int):
     """
-    Download the url's content.
+    Download the URL's content.
     :param url: Content url
     :param get_function: response.get or custom function
     :param tries: Number of retries, if the download failed.
@@ -67,7 +67,7 @@ def _get_url_data(url: str, get_function, tries: int = 1000, timeout: int = 4, w
     :return: None, if download failed, or return value of the get_function
     """
     url = url.replace('&amp;', '&')  # TODO remove
-    url = url.replace('amp;', '')  # TODO replacing this symbol? REMOVE THIS#
+    url = url.replace('amp;', '')  # TODO replacing this symbol? REMOVE THIS
 
     # Try download until it succeeds
     for i in range(wait, tries):  # Wait time to prevent accidental DOS attack
@@ -98,22 +98,25 @@ def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, w
     """
     if not file_name:
         file_name = url.strip('/').split('/')[-1]  # Get last
-    if exists(join(file_path, file_name)):
+
+    path = Path(file_path, file_name)
+    if path.exists():
         info('File exists %s' % file_name)
         return True
 
-    return _get_url_data(url, SaveToDisk(file_path, file_name).get, timeout=timeout, wait=wait, tries=tries)
+    return _get_url_data(url, SaveToDisk(file_path=path, url=url).get, tries=tries, timeout=timeout, wait=wait)
 
 
-def get_resource(url: str, timeout: int = 4, wait: int = 2) -> str:
+def get_resource(url: str, timeout: int = 4, wait: int = 2, tries: int = 10) -> str:
     """
     Get web resource as a string.
     :param url: Url of the file
     :param timeout: Response timeout in seconds
     :param wait: Wait time before download starts (in seconds)
+    :param tries: Number of download tries
     :return: Resource as a string
     """
-    data = _get_url_data(url, get, timeout=timeout, wait=wait)
+    data = _get_url_data(url, get, tries=tries, timeout=timeout, wait=wait)
     if data:
         return data.text
     return data
