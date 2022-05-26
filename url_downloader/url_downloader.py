@@ -35,7 +35,7 @@ class SaveToDisk:
         info("DOWNLOADED: %s TO %s" % (url, self._file_path))
         return True
 
-    def get(self, url: str, headers: dict, timeout: int):
+    def get(self, url: str, headers: dict, timeout: int) -> bool:
         """
         Function replaces requests.get so the url content is also saved as a file.
         Cancelling and resuming download is supported.
@@ -64,11 +64,11 @@ class SaveToDisk:
         return self._move_temporary(url)
 
 
-def _get_url_data(url: str, get_function, tries: int, timeout: int, wait: int):
+def _get_url_data(url: str, get_function: callable, tries: int, timeout: int, wait: int):
     """
     Download the URL's content
     :param url: Content url
-    :param get_function: response.get or custom function
+    :param get_function: requests.get or custom function
     :param tries: Number of retries, if the download failed
     :param timeout: Response.get timeout in seconds
     :param wait: Wait time before download starts (in seconds)
@@ -87,7 +87,6 @@ def _get_url_data(url: str, get_function, tries: int, timeout: int, wait: int):
             else:
                 error('Error on try %s' % i)
                 exception(e)
-
     return None
 
 
@@ -128,16 +127,17 @@ def save_file(url: str, file_path: str, file_name: str = '', timeout: int = 4, w
     return _get_url_data(url, save_class(file_path=path, url=url).get, tries=tries, timeout=timeout, wait=wait)
 
 
-def get_resource(url: str, timeout: int = 4, wait: int = 2, tries: int = 10) -> str:
+def get_resource(url: str, timeout: int = 4, wait: int = 2, tries: int = 10, get_function: callable = get) -> str:
     """
     Get web resource as a string.
     :param url: Url of the file
     :param timeout: Response timeout in seconds
     :param wait: Wait time before download starts (in seconds)
     :param tries: Number of download tries
+    :param get_function: requests.get or custom function
     :return: Resource as a string
     """
-    data = _get_url_data(url, get, tries=tries, timeout=timeout, wait=wait)
+    data = _get_url_data(url, get_function, tries=tries, timeout=timeout, wait=wait)
     if data:
         return data.text
     return data
