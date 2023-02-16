@@ -1,6 +1,7 @@
 """
 Simple download from url
 """
+import math
 from typing import Optional
 from logging import info, exception, error
 from shutil import move
@@ -11,6 +12,7 @@ from requests import get
 from requests.auth import AuthBase
 from pathlib import Path
 from re import findall
+from tqdm import tqdm
 
 
 class SaveToDisk:
@@ -23,6 +25,7 @@ class SaveToDisk:
             gettempdir(),
             sha224(bytes(url, encoding='UTF-8')).hexdigest() +
             file_path.suffix)
+        info(f'Temporary file for download: {self._temp_path}')
         self._file_path = file_path
 
     def _move_temporary(self, url: str) -> bool:
@@ -70,10 +73,14 @@ class SaveToDisk:
                  (response.status_code, response.text))
             return False
 
+        content_length = response.headers.get("Content-Length")
+        chunk_size = 1048576  # 1Mo
+        nb_chunks = math.ceil(float(content_length) / chunk_size)
         # Save to temporary file
-        for chunk in response.iter_content(chunk_size=256):
-            if chunk:  # filter out keep-alive new chunks
-                with open(self._temp_path, "ab") as f:
+        with open(self._temp_path, "ab") as f:
+            for chunk in tqdm(response.iter_content(chunk_size=chunk_size),
+                              total=nb_chunks):
+                if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
 
         return self._move_temporary(url)
@@ -96,7 +103,7 @@ def _get_url_data(url: str,
     :return: None, if download failed, or return value of the get_function
     """
     # Try download until it succeeds
-    for i in range(wait, tries):
+    for i in range(tries):
         try:
             sleep(i)  # Wait time to prevent accidental DOS
             result = get_function(url,
@@ -105,7 +112,7 @@ def _get_url_data(url: str,
                                   auth=auth)
             if result:
                 return result
-        except ConnectionError as e:
+        except Exception as e:
             if 'Read timed out' in str(e):
                 info('Read timeout (try %s)' % i)
             else:
